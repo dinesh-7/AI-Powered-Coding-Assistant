@@ -1,16 +1,23 @@
-# Chrome-Extension-Base-Template
-This is a basic Chrome Extension base template for starting new projects off of initialized with a MIT license.
+# AI-Powered Coding Assistant Chrome Extension
+A context-aware Chrome extension that leverages advanced AI models to assist developers with coding challenges in real-time. This extension enhances productivity and provides a seamless user experience by integrating AI-powered assistance directly into your browser.
 
 ## Features
-- ..
-- ..
-- ..
+### AI Assistance for Coding Challenges
+Powered by large language models (LLMs) APIs, offering accurate, context-specific coding solutions.
 
-## Author
-First Last
-- [Author Website]()
-- [Author Github]()
-- [Project Repository]()
+### Intuitive User Interface
+Designed with JavaScript, HTML, and CSS, featuring a seamless "AI Help" button and an integrated chatbox in a single-page application (SPA).
+
+### Enhanced Functionality
+Includes features like:
+
+- Customizable UI options for personalization.
+- Chat history storage for easy reference.
+- Optimized prompts for delivering problem-specific responses.
+
+
+
+
 
 ## Requirements
 ### Knowledge
