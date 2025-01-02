@@ -1,5 +1,20 @@
-//to Handle SPA we can use setInterval and Mutation Observer(thisis the best)... Can try with setInterval also but need to handle manycases like it will more time to load some page so if we set a fixed time it wont work i.e button would have came first but the page wouldn't get loaded by that time 
-//using Mutation Observer
+// Function to inject the CSS into the document
+function injectCSS() {
+    // Create a link element for the CSS
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = chrome.runtime.getURL('style.css'); // Get the correct path to style.css
+    console.log("Link for css", link);
+    // Append the link to the head of the document
+    document.head.appendChild(link);
+}
+
+// Call the function to inject the CSS
+injectCSS();
+
+// to Handle SPA we can use setInterval and Mutation Observer (this is the best)... Can try with setInterval also but need to handle many cases like it will take more time to load some pages so if we set a fixed time it won't work i.e., button would have appeared first but the page wouldn't get loaded by that time
+// using Mutation Observer
 let lastVistedPage = "";
 let observer = new MutationObserver(() => {
     CheckPagechange();
@@ -33,7 +48,6 @@ function onTargetPage() {
 }
 
 function cleanUp() {
-    // Clean up the AI Help button and chatbox if they exist
     const aiHelpButton = document.getElementById('ai-help-button');
     const chatContainer = document.getElementById('chat-container');
     if (aiHelpButton) aiHelpButton.remove();
@@ -41,132 +55,141 @@ function cleanUp() {
 }
 
 function addAIHelpButton() {
-    // Create the AI Help button element
     const aiHelpButton = document.createElement('button');
     aiHelpButton.id = 'ai-help-button';
     aiHelpButton.textContent = 'AI Help';
-    aiHelpButton.style.backgroundColor = '#1E90FF'; // DodgerBlue
-    aiHelpButton.style.color = '#FFFFFF'; // White
-    aiHelpButton.style.border = 'none';
-    aiHelpButton.style.borderRadius = '5px';
-    aiHelpButton.style.padding = '10px 20px';
-    aiHelpButton.style.fontSize = '16px';
-    aiHelpButton.style.cursor = 'pointer';
-    aiHelpButton.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-    aiHelpButton.style.transition = 'background-color 0.3s ease';
 
-    aiHelpButton.onmouseover = function () {
-        aiHelpButton.style.backgroundColor = '#1374d4'; // Slightly darker blue
-    };
-    aiHelpButton.onmouseout = function () {
-        aiHelpButton.style.backgroundColor = '#1E90FF'; // Original color
-    };
+    // Apply AI button styles using classList
+    aiHelpButton.classList.add('ai-help-button');
 
-    // Add the AI Help button just before this container ends
     const where_to_add_button = document.getElementsByClassName("py-4 px-3 coding_desc_container__gdB9M")[0];
     where_to_add_button.insertAdjacentElement("beforeend", aiHelpButton);
 
     aiHelpButton.addEventListener('click', function () {
-        alert('AI Help Button Clicked! Future chatbox integration will go here.');
-        addChatBox();
+        const existingChatBox = document.getElementById('chat-container');
+        //adding on Click AI-help It need to scroll to the exsiting chatbox and for new chatbox also
+        // if (existingChatBox) {
+        //     addChatBox();
+        // }
+
+        //This is working Good as I expected 
+        if (existingChatBox) {
+            // Scroll to the end of the chatbox - Can add `back to bottom button` or can comment out also 
+            const chatHistory = existingChatBox.querySelector('.chat-history');
+            if (chatHistory) {
+                chatHistory.scrollTop = chatHistory.scrollHeight; // Scroll to the bottom of chat history
+            }
+    
+            // Smoothly bring the chatbox into view without scrolling the entire page
+            existingChatBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+            // Create a new chatbox if it doesn't exist
+            addChatBox();
+    
+            // Scroll to the new chatbox after a slight delay to ensure it's rendered
+            setTimeout(() => {
+                const newChatBox = document.getElementById('chat-container');
+                if (newChatBox) {
+                    newChatBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
+                    const chatHistory = newChatBox.querySelector('.chat-history');
+                    if (chatHistory) {
+                        chatHistory.scrollTop = chatHistory.scrollHeight; // Scroll to the bottom of chat history
+                    }
+                }
+            }, 100); // Small delay to ensure the chatbox is added
+        }
     });
 }
 
 function addChatBox() {
-    // Create the chat container
     const chatContainer = document.createElement('div');
     chatContainer.id = 'chat-container';
-    chatContainer.style.width = '100%';
-    chatContainer.style.maxWidth = '600px';
-    chatContainer.style.margin = '20px auto';
-    chatContainer.style.backgroundColor = '#f1f1f1';
-    chatContainer.style.borderRadius = '10px';
-    chatContainer.style.padding = '10px';
-    chatContainer.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-    chatContainer.style.display = 'flex';
-    chatContainer.style.flexDirection = 'column';
-    chatContainer.style.height = '400px';
+    chatContainer.classList.add('chat-container');
 
-    // Create the chat history container
     const chatHistory = document.createElement('div');
     chatHistory.id = 'chat-history';
-    chatHistory.style.flex = '1';
-    chatHistory.style.overflowY = 'scroll';
-    chatHistory.style.padding = '10px';
-    chatHistory.style.borderBottom = '2px solid #ddd';
+    chatHistory.classList.add('chat-history');
     chatContainer.appendChild(chatHistory);
 
-    // Create the input container
     const inputContainer = document.createElement('div');
-    inputContainer.style.display = 'flex';
-    inputContainer.style.padding = '10px';
-    inputContainer.style.borderTop = '2px solid #ddd';
+    inputContainer.classList.add('input-container');
     chatContainer.appendChild(inputContainer);
 
-    // Create the text input field
-    const chatInput = document.createElement('input');
+    const chatInput = document.createElement('textarea');
     chatInput.id = 'chat-input';
-    chatInput.type = 'text';
     chatInput.placeholder = 'Type a message...';
-    chatInput.style.flex = '1';
-    chatInput.style.padding = '10px';
-    chatInput.style.borderRadius = '5px';
-    chatInput.style.border = '1px solid #ddd';
-    chatInput.style.fontSize = '14px';
+    chatInput.classList.add('chat-input');
     inputContainer.appendChild(chatInput);
 
-    // Create the send button
     const sendButton = document.createElement('button');
     sendButton.textContent = 'Send';
-    sendButton.style.backgroundColor = '#1E90FF'; // Same as AI Help button
-    sendButton.style.color = '#FFFFFF';
-    sendButton.style.border = 'none';
-    sendButton.style.borderRadius = '5px';
-    sendButton.style.padding = '10px';
-    sendButton.style.fontSize = '14px';
-    sendButton.style.marginLeft = '10px';
-    sendButton.style.cursor = 'pointer';
+    sendButton.classList.add('send-button');
     inputContainer.appendChild(sendButton);
 
-    sendButton.addEventListener('click', sendMessage);
+    sendButton.addEventListener('click', sendMessage); //I shouldnot use sendMessage() this calls the function during the setup of the event listener itself so this is like I have define the function below so take it as a reference only on click of this button I will call that time 
+    chatInput.addEventListener('keydown', handleKeyDown); //so dont use () in Event Listners
+    //I am adding this for good looking and to see the input text properly
+    chatInput.addEventListener('input', autoResizeInput);
 
-    // Append the chat container after the AI Help button
-    const where_to_add_button = document.getElementsByClassName("py-4 px-3 coding_desc_container__gdB9M")[0];
-    where_to_add_button.insertAdjacentElement("afterend", chatContainer);
+    const where_to_add_chatContainer = document.getElementsByClassName("py-4 px-3 coding_desc_container__gdB9M")[0];
+    where_to_add_chatContainer.insertAdjacentElement("afterend", chatContainer);
 
-    // Function to send the message
     function sendMessage() {
         const message = chatInput.value.trim();
         if (message) {
             addMessageToHistory(message, 'right');
-            chatInput.value = ''; // Clear the input field
+            chatInput.value = ''; 
+            chatInput.style.height = 'auto'; // Reset height after sending the message
 
-            // You can send the message to an API here
-            // For now, let's simulate the response
             setTimeout(() => {
                 addMessageToHistory('This is a simulated response.', 'left');
             }, 1000);
         }
     }
 
-    // Function to add message to the chat history
+    function handleKeyDown(event) {
+        if (event.key === 'Enter') {
+            if (event.shiftKey) {
+                // Allow multi-line input on Shift + Enter
+                chatInput.style.height = 'auto'; // Reset height
+                chatInput.style.height = chatInput.scrollHeight + 'px'; // Grow textarea
+            } else {
+                event.preventDefault(); // Prevent Enter from adding a newline
+                sendMessage(); // Send the message
+            }
+        }
+    }
+
     function addMessageToHistory(message, side) {
         const messageContainer = document.createElement('div');
-        messageContainer.style.display = 'flex';
-        messageContainer.style.justifyContent = side === 'right' ? 'flex-end' : 'flex-start';
-        messageContainer.style.marginBottom = '10px';
+        messageContainer.classList.add('message-container', `${side}-message`);
 
         const messageBubble = document.createElement('div');
-        messageBubble.style.backgroundColor = side === 'right' ? '#1E90FF' : '#ddd';
-        messageBubble.style.color = side === 'right' ? '#fff' : '#000';
-        messageBubble.style.padding = '10px';
-        messageBubble.style.borderRadius = '15px';
-        messageBubble.style.maxWidth = '70%';
-        messageBubble.style.wordWrap = 'break-word';
+        messageBubble.classList.add('message-bubble');
         messageBubble.textContent = message;
         messageContainer.appendChild(messageBubble);
 
         chatHistory.appendChild(messageContainer);
-        chatHistory.scrollTop = chatHistory.scrollHeight; // Scroll to the bottom
+        chatHistory.scrollTop = chatHistory.scrollHeight;
     }
+    // Function to auto resize chat input as the user types
+    function autoResizeInput() {
+        // Reset height to auto to shrink if needed
+        chatInput.style.height = 'auto';
+
+        // If the content exceeds max height, limit the height and allow scrolling
+        const maxHeight = 90; // Maximum height for the input
+        if (chatInput.scrollHeight > maxHeight) {
+            chatInput.style.height = `${maxHeight}px`;
+        } 
+        else {
+            // Otherwise, adjust the height according to the scrollHeight
+            chatInput.style.height = `${chatInput.scrollHeight}px`;
+        }
+    }
+    
+
+    // Initial resize in case there's already content in the input
+    autoResizeInput();
 }

@@ -1,0 +1,142 @@
+/* AI Help button styles */
+#ai-help-button {
+    background-color: #1E90FF;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+#ai-help-button:hover {
+    background-color: #1374d4;
+}
+
+/* Chatbox container */
+.chat-container {
+    width: 100%; /* Adjust to fit the parent container */
+    /*max-width: 1100px; /*If you want set this otherwise full page Restrict the maximum width */
+    margin: 20px auto; /* Center-align with vertical spacing */
+    background-color: #f1f1f1;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    height: 400px; /* Fixed height for the chatbox or 100% means full side page will cover */
+    box-sizing: border-box;
+    overflow-y: auto; /* Enable vertical scrolling */
+
+}
+
+/* Chat history area */
+.chat-history {
+    flex: 1;
+    overflow-y: auto; /* Allow scrolling for overflow */
+    padding: 10px;
+    border-bottom: 2px solid #ddd;
+    word-wrap: break-word; /* Ensure long words break into lines */
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Space between messages */
+}
+
+/* Chat input container */
+.input-container {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-top: 2px solid #ddd;
+    gap: 10px; /* Space between input and button */
+}
+
+/* Multi-line chat input */
+.chat-input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    min-height: 40px;
+    max-height: 150px; /* Maximum height before the scrollbar appears */
+    resize: none; /* Prevent manual resizing */
+    overflow-y: auto; /* Add vertical scrollbar when content overflows */
+    transition: height 0.2s; /* Smooth transition for resizing */
+}
+/* Chat input container */
+.chat-input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    min-height: 40px;
+    max-height: 150px; /* Maximum height before the scrollbar appears */
+    resize: none; /* Prevent manual resizing */
+    overflow-y: auto; /* Add vertical scrollbar when content overflows */
+    transition: height 0.2s; /* Smooth transition for resizing */
+}
+
+
+/* Dynamically grow/shrink chat input */
+.chat-input:focus {
+    height: auto; /* Allow dynamic resizing */
+    max-height: 80px; /* Restrict max height for usability */
+}
+
+/* Send button */
+.send-button {
+    background-color: #1E90FF; /* Original color */
+    color: #FFFFFF;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap; /* Prevent text wrapping */
+    transition: background-color 0.3s ease;
+}
+
+/* Hover effect for send button */
+.send-button:hover {
+    background-color: #1374d4;
+}
+
+/* Message container */
+.message-container {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+/* Message bubble */
+.message-bubble {
+    padding: 10px;
+    border-radius: 15px;
+    max-width: 100%; /* Make the bubble flexible */
+    word-break: break-word; /* Handle long words */
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+/* User's message (right side) */
+.right-message {
+    justify-content: flex-end;
+}
+
+.right-message .message-bubble {
+    background-color: #1E90FF;
+    color: white;
+}
+
+/* AI's response message (left side) */
+.left-message {
+    justify-content: flex-start;
+}
+
+.left-message .message-bubble {
+    background-color: #ddd;
+    color: black;
+}
