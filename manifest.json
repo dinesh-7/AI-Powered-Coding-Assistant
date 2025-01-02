@@ -1,16 +1,17 @@
 {
   "manifest_version": 3,
-  "name": "Your Chrome Extension Name",
+  "name": "AI-Powered-Coding-Assistant",
   "version": "0.1",
-  "author": "First Last",
-  "description": "A description about your Chrome Extension...",
+  "author": "Dinesh A",
+  "description": "AI-Powered Coding Assistant Chrome Extension",
   "permissions": [
-    ""
+    "storage",
+    "tabs"
   ],
   "content_scripts": [
     {
       "matches": [
-        "<all_urls>"
+        "https://maang.in/problems/*"
       ],
       "js": [
         "content.js"
@@ -22,15 +23,17 @@
   },
   "web_accessible_resources" : [
     {
-      "resources": [],
+      "resources": [
+        "assets/bookmark.png"
+      ],
       "matches" : ["<all_urls>"]
     }
   ],
   "action": {
     "default_icon": {
-      "16": "logo.png",
-      "24": "logo.png",
-      "32": "logo.png"
+      "16": "assets/ext-icon.png",
+      "24": "assets/ext-icon.png",
+      "32": "assets/ext-icon.png"
     },
     "default_popup": "index.html",
     "default_title": "A tooltip popup description when you hover over the Chrome Extension icon."
