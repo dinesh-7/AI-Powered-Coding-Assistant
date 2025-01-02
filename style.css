@@ -140,3 +140,29 @@
     background-color: #ddd;
     color: black;
 }
+
+
+/* Style for the typing indicator */
+#typing-indicator {
+    position: absolute;
+    bottom: 50px; /* Adjust based on where you want the indicator */
+    left: 20px; /* Adjust based on your layout */
+    font-size: 18px;
+    color: #555;
+    display: none; /* Initially hidden */
+    animation: typing 1.5s infinite steps(3, end);
+}
+
+/* Keyframes for typing animation */
+@keyframes typing {
+    0% {
+        content: '.';
+    }
+    20% {
+        content: '..';
+    }
+    40% {
+        content: '...';
+    }
+}
+

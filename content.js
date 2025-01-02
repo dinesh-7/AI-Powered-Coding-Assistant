@@ -135,18 +135,98 @@ function addChatBox() {
     const where_to_add_chatContainer = document.getElementsByClassName("py-4 px-3 coding_desc_container__gdB9M")[0];
     where_to_add_chatContainer.insertAdjacentElement("afterend", chatContainer);
 
-    function sendMessage() {
+    // function sendMessage() {
+    //     const message = chatInput.value.trim();
+    //     if (message) {
+    //         addMessageToHistory(message, 'right');
+    //         chatInput.value = ''; 
+    //         chatInput.style.height = 'auto'; // Reset height after sending the message
+
+    //         setTimeout(() => {
+    //             addMessageToHistory('This is a simulated response.', 'left');
+    //         }, 1000);
+    //     }
+    // }
+
+
+    async function sendMessage() {
         const message = chatInput.value.trim();
         if (message) {
+            // Add user message to history
             addMessageToHistory(message, 'right');
             chatInput.value = ''; 
             chatInput.style.height = 'auto'; // Reset height after sending the message
 
-            setTimeout(() => {
-                addMessageToHistory('This is a simulated response.', 'left');
-            }, 1000);
+           // Get the chatHistory container where the response goes
+        const chatHistory = document.getElementById('chat-history');
+
+        // Create the typing indicator element dynamically
+        const typingIndicator = document.createElement('div');
+        typingIndicator.className = 'typing-indicator'; // Styling class for typing animation
+        typingIndicator.textContent = '⏳ Typing...'; // You can use any emoji for the typing animation
+
+        // Append the typing indicator to the chatHistory (left side where responses go)
+        chatHistory.appendChild(typingIndicator);
+
+        // Display the typing indicator
+        typingIndicator.style.display = 'inline-block';
+
+
+    
+            try {
+                // Prepare the request payload for LLM API
+                const requestData = {
+                    contents: [{
+                        parts: [{
+                            text: `${message}`
+                        }]
+                    }]
+                };
+
+
+                const GEMINI_API_KEY = 'add your api key here';
+
+                // Make the API request to Gemini
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+    
+                // Check for successful response
+                if (response.ok) {
+                    const data = await response.json();
+    
+                    // Extract the text from the API response
+                    const replyText = data.candidates[0].content.parts[0].text;
+                    // Remove the typing indicator and add the model's response to chat history (on the left side)
+                    typingIndicator.style.display = 'none'; // Hide typing indicator
+                    // Add the model's response to chat history
+                    addMessageToHistory(replyText, 'left');
+                } else {
+                    console.error('Error in API response:', response.statusText);
+                    // Remove the typing indicator and add the model's response to chat history (on the left side)
+                    typingIndicator.style.display = 'none'; // Hide typing indicator
+                    addMessageToHistory("Sorry, there was an error processing your request.", 'left');
+                }
+            } catch (error) {
+                console.error('Error making the request:', error);
+                // Remove the typing indicator and add the model's response to chat history (on the left side)
+                typingIndicator.style.display = 'none'; // Hide typing indicator
+                addMessageToHistory("Sorry, there was an error processing your request.", 'left');
+            }
+            finally {
+                // Remove the typing indicator after the response
+                typingIndicator.style.display = 'none';
+            }
         }
     }
+
+    
+
+
 
     function handleKeyDown(event) {
         if (event.key === 'Enter') {
