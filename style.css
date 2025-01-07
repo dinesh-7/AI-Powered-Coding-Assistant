@@ -166,3 +166,40 @@
     }
 }
 
+
+
+/* Styling for code blocks -->  this affect their original code also for pre and code and  p Need to use alternative */ 
+pre {
+    background-color: #f5f5f5;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    overflow-x: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    margin: 5px 0;
+    color: black;
+}
+
+code {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+}
+
+/* Styling for plain text paragraphs */
+p {
+    margin: 5px 0;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* Styling for inline code */
+.inline-code {
+    background-color: orange;
+    color: white;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    margin: 0 2px;
+}

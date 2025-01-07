@@ -77,18 +77,18 @@ function getCurrentProblemId() {
     return null;
 }
 
-async function waitForProblemData(id, retries = 10, delay = 500) {
-    for (let i = 0; i < retries; i++) {
-        if (problemDataMap.has(id)) {
-            return problemDataMap.get(id);
-        }
-        console.log(`Retry ${i + 1}: Waiting for problem data for ID ${id}`);
-        await new Promise((resolve) => setTimeout(resolve, delay)); // Wait for a specified time
-    }
+// async function waitForProblemData(id, retries = 10, delay = 500) {
+//     for (let i = 0; i < retries; i++) {
+//         if (problemDataMap.has(id)) {
+//             return problemDataMap.get(id);
+//         }
+//         console.log(`Retry ${i + 1}: Waiting for problem data for ID ${id}`);
+//         await new Promise((resolve) => setTimeout(resolve, delay)); // Wait for a specified time
+//     }
 
-    console.error(`Data for problem ID ${id} not found after ${retries} retries.`);
-    return null;
-}
+//     console.error(`Data for problem ID ${id} not found after ${retries} retries.`);
+//     return null;
+// }
 
 function logProblemDataMap() {
     console.log('URL -> Response Map:');
@@ -113,7 +113,8 @@ function getLocalStorageValueById(id) {
             const value = localStorage.getItem(key);
 
             // console.log(`Value for matched key "${key}":`, value);
-            return { key, value }; // Return the matching key and value
+            // return { key, value }; // Return the matching key and value
+            return `This is my code \`\`\`${value}\`\`\``; //value alone is enough for me this has the code
         }
     }
 
@@ -128,7 +129,7 @@ function getLocalStorageValueById(id) {
 // to Handle SPA we can use setInterval and Mutation Observer (this is the best)... Can try with setInterval also but need to handle many cases like it will take more time to load some pages so if we set a fixed time it won't work i.e., button would have appeared first but the page wouldn't get loaded by that time
 // using Mutation Observer
 let lastVistedPage = "";
-let chathistory =[];
+
 let id;
 let observer = new MutationObserver(() => {
     CheckPagechange();
@@ -256,7 +257,7 @@ function addAIHelpButton() {
     });
 }
 
-function addChatBox() {
+async function addChatBox() {
     const chatContainer = document.createElement('div');
     chatContainer.id = 'chat-container';
     chatContainer.classList.add('chat-container');
@@ -289,6 +290,20 @@ function addChatBox() {
     const where_to_add_chatContainer = document.getElementsByClassName("py-4 px-3 coding_desc_container__gdB9M")[0];
     where_to_add_chatContainer.insertAdjacentElement("beforeend", chatContainer);
     
+    //load the pervious chat history
+    let oldChatMessages = await loadOldMessagefromlocal(id);
+    oldChatMessages.forEach((messageObj) => {
+        const { role, parts } = messageObj; // Destructure role and parts
+        if (parts && parts.length > 0) {
+            const content = parts.map(part => part.text).join('\n'); // Combine all parts' text
+            if (role === "user") {
+                addMessageToHistory(content, 'right');
+            } else if (role === "Model") {
+                addMessageToHistory(content, 'left');
+            }
+        }
+    });
+    
     async function sendMessage() {
         const message = chatInput.value.trim();
         if (message) {
@@ -298,24 +313,25 @@ function addChatBox() {
             chatInput.style.height = 'auto'; // Reset height after sending the message
 
            // Get the chatHistory container where the response goes
-        const chatHistory = document.getElementById('chat-history');
+            const chatHistory = document.getElementById('chat-history');
 
-        // Create the typing indicator element dynamically
-        const typingIndicator = document.createElement('div');
-        typingIndicator.className = 'typing-indicator'; // Styling class for typing animation
-        typingIndicator.textContent = '⏳ Typing...'; // You can use any emoji for the typing animation
+            // Create the typing indicator element dynamically
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'typing-indicator'; // Styling class for typing animation
+            typingIndicator.textContent = '⏳ Typing...'; // You can use any emoji for the typing animation
 
-        // Append the typing indicator to the chatHistory (left side where responses go)
-        chatHistory.appendChild(typingIndicator);
+            // Append the typing indicator to the chatHistory (left side where responses go)
+            chatHistory.appendChild(typingIndicator);
 
-        // Display the typing indicator
-        typingIndicator.style.display = 'inline-block';
+            // Display the typing indicator
+            typingIndicator.style.display = 'inline-block';
 
         
     
             try {
                 // Prepare the request payload for LLM API
-                let Prompt = buildPrompt(chathistory,message);
+                console.log("checking Correctness of the message from local storage", oldChatMessages);
+                let Prompt = await buildPrompt(oldChatMessages,message);
                 const requestData = {
                     contents: Prompt
                     //This is for old one way text instead of the below array given the Full Chat history array
@@ -327,7 +343,7 @@ function addChatBox() {
                 };
 
                 console.log("what is going as a input to GEMNI = " ,requestData)
-                const GEMINI_API_KEY = 'Paste you API key';
+                const GEMINI_API_KEY = 'AIzaSyCl557Zvf-HtX9ZOx2WEtOUdcgkAQSmjFE';
 
                 // Make the API request to Gemini
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
@@ -348,7 +364,7 @@ function addChatBox() {
                     typingIndicator.style.display = 'none'; // Hide typing indicator
                     // Add the model's response to chat history
                     addMessageToHistory(replyText, 'left');
-                    chathistory.push(
+                    oldChatMessages.push(
                         {
                         "role":"Model",
                         "parts":[{
@@ -360,17 +376,32 @@ function addChatBox() {
                     // Remove the typing indicator and add the model's response to chat history (on the left side)
                     typingIndicator.style.display = 'none'; // Hide typing indicator
                     addMessageToHistory("Sorry, there was an error processing your request.", 'left');
+                    // oldChatMessages.push(
+                    //     {
+                    //     "role":"Model",
+                    //     "parts":[{
+                    //         "text":"Sorry, there was an error processing your request."}]
+                    //     }
+                    //     );
                 }
             } catch (error) {
                 console.error('Error making the request:', error);
                 // Remove the typing indicator and add the model's response to chat history (on the left side)
                 typingIndicator.style.display = 'none'; // Hide typing indicator
-                addMessageToHistory("Sorry, there was an error processing your request.", 'left');
+                addMessageToHistory("Sorry, Error making the request", 'left');
+                // oldChatMessages.push(
+                //     {
+                //     "role":"Model",
+                //     "parts":[{
+                //         "text":"Sorry, Error making the request"}]
+                //     }
+                //     );
             }
             finally {
                 // Remove the typing indicator after the response
                 typingIndicator.style.display = 'none';
             }
+            await setOldMessagetolocal(id,oldChatMessages);
         }
     }
 
@@ -397,10 +428,13 @@ function addChatBox() {
 
         const messageBubble = document.createElement('div');
         messageBubble.classList.add('message-bubble');
-        messageBubble.textContent = message;
-        messageContainer.appendChild(messageBubble);
-
+        // Format the message (handling plain text and code blocks)
+        const formattedContent = formatMessage(message);
+        messageBubble.appendChild(formattedContent); // Append formatted content to the bubble
+            messageContainer.appendChild(messageBubble);
         chatHistory.appendChild(messageContainer);
+    
+        // Scroll to the latest message
         chatHistory.scrollTop = chatHistory.scrollHeight;
     }
     // Function to auto resize chat input as the user types
@@ -425,31 +459,250 @@ function addChatBox() {
 }
 
 
-
-function buildPrompt(chathistory, usermessage){
+//Need to make this async
+async function buildPrompt(oldChatMessages, usermessage){
     // let this_problem_data;
-    if (chathistory.length === 0) {
-        const   this_problem_data =  getProblemDataById(id);
-        const this_problem_local_code = getLocalStorageValueById(id);
-        chathistory.push({"role":"user",
+    if (oldChatMessages.length === 0) {
+        let   this_problem_data_fromweb =  getProblemDataById(id);
+        //this is not human readable so instead of it ask LLM to give the correct Prompt from it 
+        let message = `from this Can you give me the Problem statement: <print the problem statement>, sample input and output: print it  , constraint: print it , Hints: print all the hinits and the solution given and the editorial code from the below ${this_problem_data_fromweb} Just print from the given data... can you able to understand and parse it correctly and give me what all I asked for?`;
+        let this_problem_data = await PrompttoLLM(message);
+        console.log("**********this_problem_PROBLEM-DATA From LLM*********" , this_problem_data);
+        let this_problem_local_code = getLocalStorageValueById(id);
+        // console.log("**********this_problem_local_code- FROM WEB  TO  LLM IS EMPTY*********"  , this_problem_local_code_fromweb);
+        // message = `From this I just want the code that will be as the 2nd parameter Just give that code alone with the heading as What you have coded or The code to be Analysed from this ${this_problem_local_code_fromweb} parse and extract the code alone`;
+        // let this_problem_local_code = await PrompttoLLM(message);
+        console.log("**********this_problem_local_code From LLM - I am not taking it to LLM*********"  , this_problem_local_code);
+        oldChatMessages.push({"role":"user",
             "parts":[{
-              "text": JSON.stringify(this_problem_data),
+              "text":this_problem_data, //should not stringify here it is not a JSON 
             //   "label": "Problem Description" -> this gives error 
             }]
         });
-        chathistory.push({"role":"user",
+        oldChatMessages.push({"role":"user",
             "parts":[{
-              "text": JSON.stringify(this_problem_local_code),
+              "text": this_problem_local_code, //should not stringify here here it is not a JSON 
             //   "label": "My Code - need to debug this " -> this gives error in replying LLM is not understanding
             }]
         });
     }
-    chathistory.push({"role":"user",
+    oldChatMessages.push({"role":"user",
         "parts":[{
-            "text":usermessage}]});
+            "text":JSON.stringify(usermessage)}]});
 
-    console.log("This is the input to the model", chathistory );
-    return chathistory;
-    
-    
+    console.log("This is the input to the model", oldChatMessages );
+    return oldChatMessages;  
+}
+
+function loadOldMessagefromlocal(id) {
+    const key = `${id}_chat`;
+    if (localStorage.getItem(key)) {
+        console.log("The item present in local storage",JSON.parse(localStorage.getItem(key)) );
+        return JSON.parse(localStorage.getItem(key));
+    }
+    console.log("returning empty array");
+    return [];
+}
+
+function setOldMessagetolocal(id, oldChatMessages) {
+    const key = `${id}_chat`;
+    localStorage.setItem(key ,  JSON.stringify(oldChatMessages));
+    console.log("Saved the message " , localStorage.getItem(key));
+}
+
+function formatMessage(message) {
+    const container = document.createElement('div');
+
+    // Regex to detect code blocks enclosed in triple backticks
+    const codeRegex = /```([\s\S]*?)```/g;
+
+    let lastIndex = 0;
+    let match;
+
+    while ((match = codeRegex.exec(message)) !== null) {
+        // Add plain text before the code block
+        if (match.index > lastIndex) {
+            const textBefore = message.slice(lastIndex, match.index).trim();
+            if (textBefore) {
+                const paragraph = document.createElement('p');
+                paragraph.textContent = textBefore;
+                container.appendChild(paragraph);
+            }
+        }
+
+        // Add the code block
+        const codeBlock = match[1].trim();
+        const pre_chrome_ext = document.createElement('pre');
+        const code = document.createElement('code');
+        code.textContent = codeBlock;
+        pre_chrome_ext.appendChild(code);
+        container.appendChild(pre_chrome_ext);
+
+        lastIndex = codeRegex.lastIndex;
+    }
+
+    // Add remaining plain text after the last code block
+    if (lastIndex < message.length) {
+        const textAfter = message.slice(lastIndex).trim();
+        if (textAfter) {
+            const paragraph = document.createElement('p');
+            paragraph.textContent = textAfter;
+            container.appendChild(paragraph);
+        }
+    }
+
+    return container;
+}
+
+
+
+
+
+//Instead of doing lot of things and handing ask to LLM itself to format and give me back
+// function formatMessage(message) {
+//     const container = document.createElement('div');
+
+//     // Regex to detect triple backtick code blocks
+//     const codeBlockRegex = /```([\s\S]*?)```/g;
+
+//     // Regex to detect inline code enclosed in single backticks
+//     const inlineCodeRegex = /`([^`]+)`/g;
+
+//     let lastIndex = 0;
+//     let match;
+
+//     while ((match = codeBlockRegex.exec(message)) !== null) {
+//         // Handle text before the code block
+//         if (match.index > lastIndex) {
+//             const textBefore = message.slice(lastIndex, match.index).trim();
+//             processTextWithInlineCode(textBefore, container, inlineCodeRegex);
+//         }
+
+//         // Handle the code block
+//         let codeBlock = match[1].trim();
+//         const pre_chrome_ext = document.createElement('pre');
+//         const code = document.createElement('code');
+
+//         // // Process `\n` inside the code block -- this deletes \n also 
+//         // const codeLines = codeBlock.split('\\n');
+//         // codeLines.forEach(line => {
+//         //     const lineSpan = document.createElement('span');
+//         //     lineSpan.textContent = line;
+//         //     code.appendChild(lineSpan);
+
+//         //     // Add a line break after each line
+//         //     code.appendChild(document.createElement('br'));
+//         // });
+
+//         code.textContent = codeBlock;
+//         pre_chrome_ext.appendChild(code);
+//         container.appendChild(pre_chrome_ext);
+
+//         lastIndex = codeBlockRegex.lastIndex;
+//     }
+
+//     // Handle remaining text after the last code block
+//     if (lastIndex < message.length) {
+//         const textAfter = message.slice(lastIndex).trim();
+//         processTextWithInlineCode(textAfter, container, inlineCodeRegex);
+//     }
+
+//     return container;
+// }
+
+// // Helper for handling inline code within plain text
+// function processTextWithInlineCode(text, container, inlineCodeRegex) {
+//     // Split the text into lines based on \n
+//     const lines = text.split('\\n');
+
+//     lines.forEach(line => {
+//         let lastIndex = 0;
+//         let match;
+
+//         const paragraph = document.createElement('p-chrome-ext');
+
+//         while ((match = inlineCodeRegex.exec(line)) !== null) {
+//             // Add text before inline code
+//             if (match.index > lastIndex) {
+//                 const textBefore = line.slice(lastIndex, match.index).trim();
+//                 if (textBefore) {
+//                     const textNode = document.createTextNode(textBefore + ' ');
+//                     paragraph.appendChild(textNode);
+//                 }
+//             }
+
+//             // Add the inline code
+//             const codeText = match[1].trim();
+//             const codeSpan = document.createElement('span');
+//             codeSpan.textContent = codeText;
+//             codeSpan.className = 'inline-code';
+//             paragraph.appendChild(codeSpan);
+
+//             lastIndex = inlineCodeRegex.lastIndex;
+//         }
+
+//         // Add remaining text after the last inline code
+//         if (lastIndex < line.length) {
+//             const textAfter = line.slice(lastIndex).trim();
+//             if (textAfter) {
+//                 const textNode = document.createTextNode(' ' + textAfter);
+//                 paragraph.appendChild(textNode);
+//             }
+//         }
+
+//         container.appendChild(paragraph);
+//     });
+// }
+
+
+
+
+
+
+
+async function PrompttoLLM(message){
+    //I am using one way fetch message for this 
+    let replyText;
+    try {
+        // Prepare the request payload for LLM API
+
+        const requestData = {
+            contents:  [{
+                parts: [{
+                    text: `${message}`
+                }]
+            }]
+        };
+
+        console.log("what is going as a input to GEMNI from Prompt = " ,requestData)
+        const GEMINI_API_KEY = 'AIzaSyCl557Zvf-HtX9ZOx2WEtOUdcgkAQSmjFE';
+
+        // Make the API request to Gemini
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        });
+
+        // Check for successful response
+        if (response.ok) {
+            const data = await response.json();
+
+            // Extract the text from the API response
+            replyText = data.candidates[0].content.parts[0].text;
+            console.log("Got the reply for the Prompt ", replyText);
+            //I dont want to add any 
+            // addMessageToHistory(replyText, 'right');
+            
+        } else {
+            console.error('Error in sending your Prompt to LLM:', response.statusText);
+            // addMessageToHistory("Sorry, there was an error sending your Prompt to LLM", 'left');
+        }
+    } catch (error) {
+        console.error('Error making the request for Prompt:', error);
+        // addMessageToHistory("Sorry, Error making the request for Prompt", 'left');
+    }
+    return replyText;
 }
