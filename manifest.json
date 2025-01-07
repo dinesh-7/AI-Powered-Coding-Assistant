@@ -25,7 +25,8 @@
     {
       "resources": [
         "assets/bookmark.png",
-        "style.css"
+        "style.css",
+        "inject.js"
       ],
       "matches" : ["<all_urls>"]
     }
