@@ -1,3 +1,4 @@
+const GEMINI_API_KEY = 'Enter you API key';
 // Function to inject the CSS into the document
 function injectCSS() {
     // Create a link element for the CSS
@@ -110,9 +111,9 @@ function getLocalStorageValueById(id) {
     for (const key of keys) {
         // console.log("Testing what is the key" ,key);
         if (pattern.test(key)) {
-            const value = localStorage.getItem(key);
-
-            // console.log(`Value for matched key "${key}":`, value);
+            let value = localStorage.getItem(key);
+            value = JSON.parse(value);
+            console.log(`Value for matched key "${key}":`, value);
             // return { key, value }; // Return the matching key and value
             return `This is my code \`\`\`${value}\`\`\``; //value alone is enough for me this has the code
         }
@@ -296,6 +297,18 @@ async function addChatBox() {
         const { role, parts } = messageObj; // Destructure role and parts
         if (parts && parts.length > 0) {
             const content = parts.map(part => part.text).join('\n'); // Combine all parts' text
+            function isJsonString(content) {
+                console.log("typeof content ",typeof content ," = ", content);
+                if (typeof content !== 'string') return false; // JSON must be a string
+                return /^[\[{]/.test(content.trim()); // Quick check for `{` or `[` at the start
+            }
+            
+            // Example usage
+            if (isJsonString(content)) {
+                console.log("Which string is in Json format", content);
+                content = JSON.parse(content);
+                console.log("After Parsing in Json format", content);
+            }
             if (role === "user") {
                 addMessageToHistory(content, 'right');
             } else if (role === "Model") {
@@ -343,7 +356,7 @@ async function addChatBox() {
                 };
 
                 console.log("what is going as a input to GEMNI = " ,requestData)
-                const GEMINI_API_KEY = 'AIzaSyCl557Zvf-HtX9ZOx2WEtOUdcgkAQSmjFE';
+                
 
                 // Make the API request to Gemini
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
@@ -465,7 +478,7 @@ async function buildPrompt(oldChatMessages, usermessage){
     if (oldChatMessages.length === 0) {
         let   this_problem_data_fromweb =  getProblemDataById(id);
         //this is not human readable so instead of it ask LLM to give the correct Prompt from it 
-        let message = `from this Can you give me the Problem statement: <print the problem statement>, sample input and output: print it  , constraint: print it , Hints: print all the hinits and the solution given and the editorial code from the below ${this_problem_data_fromweb} Just print from the given data... can you able to understand and parse it correctly and give me what all I asked for?`;
+        let message = `from this Can you give me the Problem statement: <print the problem statement>, sample input and output: print it  , constraint: print it , Hints: print all the hinits and the solution given and the editorial code from the below ${this_problem_data_fromweb} Just print from the given data... can you able to understand and parse it correctly and give me what all I asked for thats it?`;
         let this_problem_data = await PrompttoLLM(message);
         console.log("**********this_problem_PROBLEM-DATA From LLM*********" , this_problem_data);
         let this_problem_local_code = getLocalStorageValueById(id);
@@ -473,6 +486,7 @@ async function buildPrompt(oldChatMessages, usermessage){
         // message = `From this I just want the code that will be as the 2nd parameter Just give that code alone with the heading as What you have coded or The code to be Analysed from this ${this_problem_local_code_fromweb} parse and extract the code alone`;
         // let this_problem_local_code = await PrompttoLLM(message);
         console.log("**********this_problem_local_code From LLM - I am not taking it to LLM*********"  , this_problem_local_code);
+        
         oldChatMessages.push({"role":"user",
             "parts":[{
               "text":this_problem_data, //should not stringify here it is not a JSON 
@@ -488,7 +502,7 @@ async function buildPrompt(oldChatMessages, usermessage){
     }
     oldChatMessages.push({"role":"user",
         "parts":[{
-            "text":JSON.stringify(usermessage)}]});
+            "text":usermessage}]});
 
     console.log("This is the input to the model", oldChatMessages );
     return oldChatMessages;  
@@ -510,149 +524,167 @@ function setOldMessagetolocal(id, oldChatMessages) {
     console.log("Saved the message " , localStorage.getItem(key));
 }
 
-function formatMessage(message) {
-    const container = document.createElement('div');
-
-    // Regex to detect code blocks enclosed in triple backticks
-    const codeRegex = /```([\s\S]*?)```/g;
-
-    let lastIndex = 0;
-    let match;
-
-    while ((match = codeRegex.exec(message)) !== null) {
-        // Add plain text before the code block
-        if (match.index > lastIndex) {
-            const textBefore = message.slice(lastIndex, match.index).trim();
-            if (textBefore) {
-                const paragraph = document.createElement('p');
-                paragraph.textContent = textBefore;
-                container.appendChild(paragraph);
-            }
-        }
-
-        // Add the code block
-        const codeBlock = match[1].trim();
-        const pre_chrome_ext = document.createElement('pre');
-        const code = document.createElement('code');
-        code.textContent = codeBlock;
-        pre_chrome_ext.appendChild(code);
-        container.appendChild(pre_chrome_ext);
-
-        lastIndex = codeRegex.lastIndex;
-    }
-
-    // Add remaining plain text after the last code block
-    if (lastIndex < message.length) {
-        const textAfter = message.slice(lastIndex).trim();
-        if (textAfter) {
-            const paragraph = document.createElement('p');
-            paragraph.textContent = textAfter;
-            container.appendChild(paragraph);
-        }
-    }
-
-    return container;
-}
-
-
-
-
-
-//Instead of doing lot of things and handing ask to LLM itself to format and give me back
 // function formatMessage(message) {
 //     const container = document.createElement('div');
 
-//     // Regex to detect triple backtick code blocks
-//     const codeBlockRegex = /```([\s\S]*?)```/g;
-
-//     // Regex to detect inline code enclosed in single backticks
-//     const inlineCodeRegex = /`([^`]+)`/g;
+//     // Regex to detect code blocks enclosed in triple backticks
+//     const codeRegex = /```([\s\S]*?)```/g;
 
 //     let lastIndex = 0;
 //     let match;
 
-//     while ((match = codeBlockRegex.exec(message)) !== null) {
-//         // Handle text before the code block
+//     while ((match = codeRegex.exec(message)) !== null) {
+//         // Add plain text before the code block
 //         if (match.index > lastIndex) {
 //             const textBefore = message.slice(lastIndex, match.index).trim();
-//             processTextWithInlineCode(textBefore, container, inlineCodeRegex);
+//             if (textBefore) {
+//                 const paragraph = document.createElement('p');
+//                 paragraph.textContent = textBefore;
+//                 container.appendChild(paragraph);
+//             }
 //         }
 
-//         // Handle the code block
-//         let codeBlock = match[1].trim();
+//         // Add the code block
+//         const codeBlock = match[1].trim();
 //         const pre_chrome_ext = document.createElement('pre');
 //         const code = document.createElement('code');
-
-//         // // Process `\n` inside the code block -- this deletes \n also 
-//         // const codeLines = codeBlock.split('\\n');
-//         // codeLines.forEach(line => {
-//         //     const lineSpan = document.createElement('span');
-//         //     lineSpan.textContent = line;
-//         //     code.appendChild(lineSpan);
-
-//         //     // Add a line break after each line
-//         //     code.appendChild(document.createElement('br'));
-//         // });
-
 //         code.textContent = codeBlock;
 //         pre_chrome_ext.appendChild(code);
 //         container.appendChild(pre_chrome_ext);
 
-//         lastIndex = codeBlockRegex.lastIndex;
+//         lastIndex = codeRegex.lastIndex;
 //     }
 
-//     // Handle remaining text after the last code block
+//     // Add remaining plain text after the last code block
 //     if (lastIndex < message.length) {
 //         const textAfter = message.slice(lastIndex).trim();
-//         processTextWithInlineCode(textAfter, container, inlineCodeRegex);
+//         if (textAfter) {
+//             const paragraph = document.createElement('p');
+//             paragraph.textContent = textAfter;
+//             container.appendChild(paragraph);
+//         }
 //     }
 
 //     return container;
 // }
 
-// // Helper for handling inline code within plain text
-// function processTextWithInlineCode(text, container, inlineCodeRegex) {
-//     // Split the text into lines based on \n
-//     const lines = text.split('\\n');
 
-//     lines.forEach(line => {
-//         let lastIndex = 0;
-//         let match;
 
-//         const paragraph = document.createElement('p-chrome-ext');
 
-//         while ((match = inlineCodeRegex.exec(line)) !== null) {
-//             // Add text before inline code
-//             if (match.index > lastIndex) {
-//                 const textBefore = line.slice(lastIndex, match.index).trim();
-//                 if (textBefore) {
-//                     const textNode = document.createTextNode(textBefore + ' ');
-//                     paragraph.appendChild(textNode);
-//                 }
-//             }
 
-//             // Add the inline code
-//             const codeText = match[1].trim();
-//             const codeSpan = document.createElement('span');
-//             codeSpan.textContent = codeText;
-//             codeSpan.className = 'inline-code';
-//             paragraph.appendChild(codeSpan);
+function formatMessage(message) {
+    const container = document.createElement('div');
 
-//             lastIndex = inlineCodeRegex.lastIndex;
-//         }
+    // Regex to detect triple backtick code blocks
+    const codeBlockRegex = /```([\s\S]*?)```/g;
 
-//         // Add remaining text after the last inline code
-//         if (lastIndex < line.length) {
-//             const textAfter = line.slice(lastIndex).trim();
-//             if (textAfter) {
-//                 const textNode = document.createTextNode(' ' + textAfter);
-//                 paragraph.appendChild(textNode);
-//             }
-//         }
+    // Regex to detect inline code enclosed in single backticks
+    const inlineCodeRegex = /`([^`]+)`/g;
 
-//         container.appendChild(paragraph);
-//     });
-// }
+    // Regex to detect bold text enclosed in **
+    const boldTextRegex = /\*\*([^*]+)\*\*/g;
+
+    let lastIndex = 0;
+    let match;
+
+    while ((match = codeBlockRegex.exec(message)) !== null) {
+        // Handle text before the code block
+        if (match.index > lastIndex) {
+            const textBefore = message.slice(lastIndex, match.index).trim();
+            processTextWithFormatting(textBefore, container, inlineCodeRegex, boldTextRegex);
+        }
+
+        // Handle the code block
+        const codeBlock = match[1].trim();
+        const preElement = document.createElement('pre');
+        const codeElement = document.createElement('code');
+        codeElement.textContent = codeBlock;
+        preElement.appendChild(codeElement);
+        container.appendChild(preElement);
+
+        lastIndex = codeBlockRegex.lastIndex;
+    }
+
+    // Handle remaining text after the last code block
+    if (lastIndex < message.length) {
+        const textAfter = message.slice(lastIndex).trim();
+        processTextWithFormatting(textAfter, container, inlineCodeRegex, boldTextRegex);
+    }
+
+    return container;
+}
+
+// Helper function to process text with inline code and bold formatting
+function processTextWithFormatting(text, container, inlineCodeRegex, boldTextRegex) {
+    // Split the text into lines based on \n
+    const lines = text.split('\n');
+
+    lines.forEach(line => {
+        let lastIndex = 0;
+        let match;
+
+        const paragraph = document.createElement('p');
+
+        while ((match = inlineCodeRegex.exec(line)) !== null) {
+            // Add text before inline code
+            if (match.index > lastIndex) {
+                let textBefore = line.slice(lastIndex, match.index).trim();
+                textBefore = applyBoldFormatting(textBefore, boldTextRegex);
+                paragraph.appendChild(textBefore);
+            }
+
+            // Add the inline code
+            const codeText = match[1].trim();
+            const codeSpan = document.createElement('span');
+            codeSpan.textContent = codeText;
+            codeSpan.className = 'inline-code';
+            paragraph.appendChild(codeSpan);
+
+            lastIndex = inlineCodeRegex.lastIndex;
+        }
+
+        // Add remaining text after the last inline code
+        if (lastIndex < line.length) {
+            let textAfter = line.slice(lastIndex).trim();
+            textAfter = applyBoldFormatting(textAfter, boldTextRegex);
+            paragraph.appendChild(textAfter);
+        }
+
+        container.appendChild(paragraph);
+    });
+}
+
+// Helper function to apply bold formatting
+function applyBoldFormatting(text, boldTextRegex) {
+    const fragment = document.createDocumentFragment();
+    let lastIndex = 0;
+    let match;
+
+    while ((match = boldTextRegex.exec(text)) !== null) {
+        // Add text before bold
+        if (match.index > lastIndex) {
+            const textNode = document.createTextNode(text.slice(lastIndex, match.index));
+            fragment.appendChild(textNode);
+        }
+
+        // Add bold text
+        const boldText = match[1];
+        const boldElement = document.createElement('strong');
+        boldElement.textContent = boldText;
+        fragment.appendChild(boldElement);
+
+        lastIndex = boldTextRegex.lastIndex;
+    }
+
+    // Add remaining text after the last bold section
+    if (lastIndex < text.length) {
+        const textNode = document.createTextNode(text.slice(lastIndex));
+        fragment.appendChild(textNode);
+    }
+
+    return fragment;
+}
+
 
 
 
@@ -675,7 +707,7 @@ async function PrompttoLLM(message){
         };
 
         console.log("what is going as a input to GEMNI from Prompt = " ,requestData)
-        const GEMINI_API_KEY = 'AIzaSyCl557Zvf-HtX9ZOx2WEtOUdcgkAQSmjFE';
+        
 
         // Make the API request to Gemini
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
