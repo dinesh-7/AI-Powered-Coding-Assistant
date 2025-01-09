@@ -8,7 +8,6 @@ function getApiKey() {
 
 let GEMINI_API_KEY;
 
-// const GEMINI_API_KEY = 'AIzaSyCl557Zvf-HtX9ZOx2WEtOUdcgkAQSmjFE';
 // Function to inject the CSS into the document
 function injectCSS() {
     // Create a link element for the CSS
@@ -235,16 +234,14 @@ function addAIHelpButton() {
         GEMINI_API_KEY = await getApiKey();
         if (!GEMINI_API_KEY) {
             console.log("API key is missing. Chatbox will not be created.");
-            window.alert("Please Enter the API Key by clicking the extension button");
+            // window.alert("Please Enter the API Key by clicking the extension button");
+            createPopup();
             return;
         }
         
 
         const existingChatBox = document.getElementById('chat-container');
-        //adding on Click AI-help It need to scroll to the exsiting chatbox and for new chatbox also
-        // if (existingChatBox) {
-        //     addChatBox();
-        // }
+        
 
         //This is working Good as I expected 
         if (existingChatBox) {
@@ -437,9 +434,6 @@ async function addChatBox() {
         }
     }
 
-    
-
-
 
     function handleKeyDown(event) {
         if (event.key === 'Enter') {
@@ -542,52 +536,6 @@ function setOldMessagetolocal(id, oldChatMessages) {
     localStorage.setItem(key ,  JSON.stringify(oldChatMessages));
     console.log("Saved the message " , localStorage.getItem(key));
 }
-
-// function formatMessage(message) {
-//     const container = document.createElement('div');
-
-//     // Regex to detect code blocks enclosed in triple backticks
-//     const codeRegex = /```([\s\S]*?)```/g;
-
-//     let lastIndex = 0;
-//     let match;
-
-//     while ((match = codeRegex.exec(message)) !== null) {
-//         // Add plain text before the code block
-//         if (match.index > lastIndex) {
-//             const textBefore = message.slice(lastIndex, match.index).trim();
-//             if (textBefore) {
-//                 const paragraph = document.createElement('p');
-//                 paragraph.textContent = textBefore;
-//                 container.appendChild(paragraph);
-//             }
-//         }
-
-//         // Add the code block
-//         const codeBlock = match[1].trim();
-//         const pre_chrome_ext = document.createElement('pre');
-//         const code = document.createElement('code');
-//         code.textContent = codeBlock;
-//         pre_chrome_ext.appendChild(code);
-//         container.appendChild(pre_chrome_ext);
-
-//         lastIndex = codeRegex.lastIndex;
-//     }
-
-//     // Add remaining plain text after the last code block
-//     if (lastIndex < message.length) {
-//         const textAfter = message.slice(lastIndex).trim();
-//         if (textAfter) {
-//             const paragraph = document.createElement('p');
-//             paragraph.textContent = textAfter;
-//             container.appendChild(paragraph);
-//         }
-//     }
-
-//     return container;
-// }
-
-
 
 
 
@@ -705,12 +653,6 @@ function applyBoldFormatting(text, boldTextRegex) {
 }
 
 
-
-
-
-
-
-
 async function PrompttoLLM(message){
     //I am using one way fetch message for this 
     let replyText;
@@ -756,4 +698,51 @@ async function PrompttoLLM(message){
         // addMessageToHistory("Sorry, Error making the request for Prompt", 'left');
     }
     return replyText;
+}
+
+
+
+function createPopup() {
+    // Create the popup overlay
+    const overlay = document.createElement("div");
+    overlay.id = "popup-overlay";
+
+    // Create the popup container
+    const popup = document.createElement("div");
+    popup.id = "popup-container";
+
+    // Add content to the popup
+    popup.innerHTML = `
+        <h2>Set API Key</h2>
+        <p>Please provide your API key to proceed:</p>
+        <input id="api-key-input" type="text" placeholder="Enter API Key">
+        <button id="save-api-key-btn">Save</button>
+        <button id="close-popup-btn">Cancel</button>
+    `;
+
+    // Append the popup and overlay to the document
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay);
+
+    // Add event listeners for buttons
+    document.getElementById("save-api-key-btn").addEventListener("click", saveApiKey);
+    document.getElementById("close-popup-btn").addEventListener("click", closePopup);
+
+    // Save the API key and close the popup
+    function saveApiKey() {
+        const apiKey = document.getElementById("api-key-input").value.trim();
+        if (apiKey && apiKey.length > 10) {
+            chrome.storage.local.set({ az_ai_apikey: apiKey }, () => {
+                alert("API key saved successfully!");
+                closePopup();
+            });
+        } else {
+            alert("Please enter a valid API key.");
+        }
+    }
+
+    // Remove the popup from the document
+    function closePopup() {
+        overlay.remove();
+    }
 }

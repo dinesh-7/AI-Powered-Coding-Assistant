@@ -250,7 +250,7 @@ p {
     gap: 15px;
   }
   
-  /* Input field styling */
+  /* Input field styling
   .key-handler-pop input {
     width: 100%;
     padding: 12px;
@@ -266,7 +266,7 @@ p {
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
   }
   
-  /* Button styling */
+  
   .key-handler-pop button {
     width: 100%;
     padding: 12px;
@@ -283,19 +283,75 @@ p {
     background-color: #193f58;
   }
   
-  /* Note styling */
+ 
   .note-pop {
     font-size: 12px;
     color: #6c757d;
     margin-top: 10px;
   }
   
-  /* Success message styling */
+  
   .success-message-pop {
     font-size: 14px;
     color: #28a745;
     margin-top: 15px;
     text-align: center;
-    display: none; /* Initially hidden */
+    display: none; 
   }
   
+
+ */
+
+
+
+#popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+#popup-container {
+    width: 400px;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+#popup-container h2 {
+    margin-bottom: 10px;
+}
+
+#popup-container input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#popup-container button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#save-api-key-btn {
+    background-color: #007BFF;
+    color: white;
+}
+
+#close-popup-btn {
+    background-color: #6c757d;
+    color: white;
+    margin-left: 10px;
+}
