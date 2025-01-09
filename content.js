@@ -1,4 +1,14 @@
-const GEMINI_API_KEY = 'Enter you API key';
+function getApiKey() {
+    return new Promise((resolve, reject) => {
+        chrome.storage.local.get("az_ai_apikey", (result) => {
+            resolve(result.az_ai_apikey || null);
+        });
+    });
+}
+
+let GEMINI_API_KEY;
+
+// const GEMINI_API_KEY = 'AIzaSyCl557Zvf-HtX9ZOx2WEtOUdcgkAQSmjFE';
 // Function to inject the CSS into the document
 function injectCSS() {
     // Create a link element for the CSS
@@ -220,7 +230,16 @@ function addAIHelpButton() {
     const where_to_add_button = document.getElementsByClassName("py-4 px-3 coding_desc_container__gdB9M")[0];
     where_to_add_button.insertAdjacentElement("beforeend", aiHelpButton);
 
-    aiHelpButton.addEventListener('click', function () {
+    aiHelpButton.addEventListener('click', async function () {
+
+        GEMINI_API_KEY = await getApiKey();
+        if (!GEMINI_API_KEY) {
+            console.log("API key is missing. Chatbox will not be created.");
+            window.alert("Please Enter the API Key by clicking the extension button");
+            return;
+        }
+        
+
         const existingChatBox = document.getElementById('chat-container');
         //adding on Click AI-help It need to scroll to the exsiting chatbox and for new chatbox also
         // if (existingChatBox) {
