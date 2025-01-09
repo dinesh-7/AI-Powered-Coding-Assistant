@@ -632,7 +632,7 @@ function processTextWithFormatting(text, container, inlineCodeRegex, boldTextReg
             lastIndex = inlineCodeRegex.lastIndex;
         }
 
-        // Add remaining text after the last inline code
+        // Add remaining text after the last inline codes
         if (lastIndex < line.length) {
             let textAfter = line.slice(lastIndex).trim();
             textAfter = applyBoldFormatting(textAfter, boldTextRegex);
